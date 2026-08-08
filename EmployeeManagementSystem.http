@@ -4,3 +4,11 @@ GET {{EmployeeManagementSystem_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+GET {{EmployeeManagementSystem_HostAddress}}/api/employees
+Accept: application/json
+
+###
+GET {{EmployeeManagementSystem_HostAddress}}/api/employees/details
+Accept: application/json
+
+###

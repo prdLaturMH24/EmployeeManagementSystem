@@ -1,9 +1,11 @@
 using EmployeeManagementSystem.Data;
+using EmployeeManagementSystem.Repository;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace EmployeeManagementSystem
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -20,6 +22,8 @@ namespace EmployeeManagementSystem
                 options.EnableSensitiveDataLogging();
                 options.LogTo(Console.WriteLine);
             });
+
+            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -53,6 +57,18 @@ namespace EmployeeManagementSystem
                 return forecast;
             })
             .WithName("GetWeatherForecast");
+
+            app.MapGet("/api/employees", async (IEmployeeRepository employeeRepository) =>
+            {
+                var employees = await employeeRepository.GetAllEmployeesAsync();
+                return Results.Ok(employees);
+            }) .WithName("GetAllEmployees");
+
+            app.MapGet("/api/employees/details", async (IEmployeeRepository employeeRepository) =>
+            {
+                var employees = await employeeRepository.GetAllEmployeesWithDetailsAsync();
+                return Results.Ok(employees);
+            }) .WithName("GetAllEmployeesWithDetails");
 
             app.Run();
         }
