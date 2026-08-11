@@ -10,5 +10,4 @@ Accept: application/json
 ###
 GET {{EmployeeManagementSystem_HostAddress}}/api/employees/details
 Accept: application/json
-
 ###

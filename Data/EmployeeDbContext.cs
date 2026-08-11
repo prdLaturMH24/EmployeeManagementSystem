@@ -31,10 +31,16 @@ namespace EmployeeManagementSystem.Data
                 .HasPrecision(18, 2);
 
             //One to One Relationship between Employee and EmployeeDetail
-            modelBuilder.Entity<Employee>()
-                .HasOne(e => e.EmployeeDetail)
-                .WithOne(ed => ed.Employee)
-                .HasForeignKey<Employee>(e => e.EmployeeDetailId)
+            //modelBuilder.Entity<Employee>()
+            //    .HasOne(e => e.EmployeeDetail)
+            //    .WithOne(ed => ed.Employee)
+            //    .HasForeignKey<EmployeeDetail>(e => e.EmployeeId)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EmployeeDetail>()
+                .HasOne(ed => ed.Employee)
+                .WithOne(e => e.EmployeeDetail)
+                .HasForeignKey<EmployeeDetail>(e => e.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
 
