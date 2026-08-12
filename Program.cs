@@ -87,7 +87,7 @@ namespace EmployeeManagementSystem
             app.MapGet("/api/employees/details", async (IEmployeeRepository employeeRepository) =>
             {
                 var employees = await employeeRepository.GetAllEmployeesWithDetailsAsync();
-                var employeeDetailsDtos = employees.Select(e => new Models.DTOs.EmployeeDetailsDto
+                var employeeDetailsDtos = employees.Select(e => new Models.DTOs.EmployeeDetails
                 {
                     EmployeeId = e.AssociateId,
                     FirstName = e.FirstName,
@@ -101,6 +101,28 @@ namespace EmployeeManagementSystem
                 }).ToList();
                 return Results.Ok(employeeDetailsDtos);
             }).WithName("GetAllEmployeesWithDetails");
+
+            app.MapGet("/api/employees/by-position", async (IEmployeeRepository employeeRepository) =>
+            {
+                var employeesByPosition = await employeeRepository.GetAllEmployeesByPositionAsync();
+                var employeesByPositionDtos = employeesByPosition.Select(kvp => new Models.DTOs.EmployeesByPosition
+                {
+                    Position = kvp.Key,
+                    Employees = kvp.Value.Select(e => new Models.DTOs.EmployeeDetails
+                    {
+                        EmployeeId = e.AssociateId,
+                        FirstName = e.FirstName,
+                        LastName = e.LastName,
+                        Email = e.EmployeeDetail?.Email ?? string.Empty,
+                        PhoneNumber = e.EmployeeDetail?.PhoneNumber ?? string.Empty,
+                        Address = e.EmployeeDetail?.Address ?? string.Empty,
+                        DateOfBirth = e.EmployeeDetail?.DateOfBirth ?? default(DateOnly),
+                        Position = e.EmployeeDetail?.Position ?? string.Empty,
+                        Salary = e.EmployeeDetail?.Salary ?? 0
+                    }).ToList()
+                }).ToList();
+                return Results.Ok(employeesByPositionDtos);
+            }).WithName("GetAllEmployeesByPosition");
 
             app.Run();
         }

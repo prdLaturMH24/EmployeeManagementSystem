@@ -1,6 +1,6 @@
 ﻿namespace EmployeeManagementSystem.Models.DTOs
 {
-    public class EmployeeDetailsDto
+    public class EmployeeDetails
     {
         public string EmployeeId { get; set; } = string.Empty;
         public string FirstName { get; set; } = string.Empty;
