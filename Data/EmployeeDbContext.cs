@@ -43,8 +43,5 @@ namespace EmployeeManagementSystem.Data
                 .HasForeignKey<EmployeeDetail>(e => e.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
-
-        //Select * FROM [DatabaseName].[SchemaName].[TableName]
-        //Select * FROM [EmployeeDatabase].[Employee].[Employee]
     }
 }

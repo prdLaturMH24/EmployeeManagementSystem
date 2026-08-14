@@ -1,15 +1,10 @@
-﻿namespace EmployeeManagementSystem.Models.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EmployeeManagementSystem.Models.DTOs
 {
-    public class EmployeeDetails
+    public class EmployeeDetails : Details
     {
-        public string EmployeeId { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public DateOnly DateOfBirth { get; set; }
-        public string Position { get; set; } = string.Empty;
-        public decimal Salary { get; set; }
+        [Required(ErrorMessage = "Employee ID is required.")]
+        public string EmployeeId { get; set; } = string.Empty;      
     }
 }

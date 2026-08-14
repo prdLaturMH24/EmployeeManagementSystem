@@ -4,8 +4,13 @@ namespace EmployeeManagementSystem.Repository
 {
     public interface IEmployeeRepository
     {
-        public Task<List<Employee>> GetAllEmployeesAsync();
-        public Task<List<Employee>> GetAllEmployeesWithDetailsAsync();
-        public Task<Dictionary<string, List<Employee>>> GetAllEmployeesByPositionAsync();
+        Task<List<Employee>> GetAllEmployeesAsync();
+        Task<List<Employee>> GetAllEmployeesWithDetailsAsync();
+        Task<Dictionary<string, List<Employee>>> GetAllEmployeesByPositionAsync();
+        Task<bool> EmployeeExistsAsync(string employeeId);
+        Task<Employee?> GetEmployeeByIdAsync(string employeeId);
+        Task<bool> AddEmployeeAsync(Employee employee);
+        Task<bool> UpdateEmployeeAsync(Employee employee);
+        Task<bool> DeleteEmployeeAsync(Employee employee);
     }
 }

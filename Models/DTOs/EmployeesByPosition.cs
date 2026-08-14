@@ -3,6 +3,6 @@
     public class EmployeesByPosition
     {
         public string Position { get; set; } = string.Empty;
-        public IEnumerable<EmployeeDetails> Employees { get; set; } = new List<EmployeeDetails>();
+        public IEnumerable<Details> Employees { get; set; } = new List<Details>();
     }
 }
