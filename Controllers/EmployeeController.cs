@@ -36,11 +36,33 @@ namespace EmployeeManagementSystem.Controllers
             }
 
             var result = await employeeService.AddEmployeeAsync(employeeDetails);
+
             if (result)
             {
                 return Created($"/employees/{employeeDetails.EmployeeId}", new { message = "Employee added successfully." });
             }
-            return Problem("An error occurred while adding the employee.");
+            return Problem($"An error occurred while adding the employee.");
+        }
+
+        [HttpPost("employees/add")]
+        public async Task<ActionResult> AddEmployeeExtra([FromBody] EmployeeDetailsDto employeeDetails)
+        {
+            if (employeeDetails == null || !ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid employee details." });
+            }
+            var employeeExists = await employeeService.EmployeeExistsAsync(employeeDetails.EmployeeId);
+            if (employeeExists)
+            {
+                return BadRequest(new { message = "Employee with the specified ID already exists." });
+            }
+
+            var result = await employeeService.ValidateAndAddEmployeeAsync(employeeDetails);
+            if (result.success)
+            {
+                return Created($"/employees/{employeeDetails.EmployeeId}", new { message = "Employee added successfully." });
+            }
+            return Problem($"An error occurred while adding the employee. {string.Join(", ", result.errors)}");
         }
 
         [HttpPut("employees/{employeeId}")]
