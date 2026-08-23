@@ -42,27 +42,63 @@ namespace EmployeeManagementSystem
                     }
                 });
             });
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin();
+                    policy.AllowAnyMethod();
+                    policy.AllowAnyHeader();
+                });
+            });
             var app = builder.Build();
            
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi("/openapi/v1/EmployeeManagementSystem.json");
+                app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI(options =>
                 {
                     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee Management System API v1");
                     options.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
                 });
+                //Developer exception page middleware (UseDeveloperExceptionPage) reports app runtime errors.
+                app.UseDeveloperExceptionPage();
             }
-
+            //Enforces secure connections
+            // Enable HSTS ONLY in production environments
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Error", true);
+                // Strict Transport Security (HSTS) 
+                app.UseHsts();
+            }
+            //Redirects HTTP requests to HTTPS
             app.UseHttpsRedirection();
+
+            //Matches the request URL to an endpoint matching pattern
             app.UseRouting();
+
+            // Applies cross-origin browser resource rules
+            app.UseCors();
+
+            //Identifies the user
+            app.UseAuthentication();
+
+            //Validates roles/claims
+            app.UseAuthorization();
+
+            //Runs Controllers, Minimal APIs, or Razor Pages
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            //app.Run(async context =>
+            //{
+            //    context.Response.Headers.Append("Message", "Thank you!");
+            //});
             app.Run();
         }
     }
