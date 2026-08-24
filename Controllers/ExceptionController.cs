@@ -1,4 +1,5 @@
-﻿using EmployeeManagementSystem.Models.DTOs;
+﻿using EmployeeManagementSystem.Common.Exceptions;
+using EmployeeManagementSystem.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeManagementSystem.Controllers
@@ -34,6 +35,17 @@ namespace EmployeeManagementSystem.Controllers
             return NotFound();
         }
 
+        [HttpGet("/throw-not-found-exception")]
+        public async Task<IActionResult> ThrowNotFoundException(string filePath)
+        {
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists)
+            {
+                throw new NotFoundException($"File not found: {filePath}");
+            }
+            return Ok();
+        }
+
         [HttpGet("/throw-divide-by-zero-exception")]
         public IActionResult ThrowDivideByZeroException()
         {
@@ -55,21 +67,18 @@ namespace EmployeeManagementSystem.Controllers
 
         //Exception Handling
         [HttpGet("/handle-divide-by-zero-exception")]
-        public IActionResult HandleDivideByZeroException(double? numerator, double? denominator)
+        public IActionResult HandleDivideByZeroException(
+            [FromQuery] double? numerator,
+            [FromQuery] double? denominator)
         {
             try
             {
-                double result = SafeDivision(numerator, denominator);
+                double result = SafeDivisionWithEvenNumberDenominator(numerator, denominator);
                 return Ok(result);
             }
-            catch (Exception ex) when (ex is DivideByZeroException || ex is ArgumentException)
+            catch (Exception ex) when (ex is DivideByZeroException || ex is ArgumentException || ex is DivideByOddNumberException)
             {
                 return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                //return StatusCode(500, "An unexpected error occurred: " + ex.Message);
-                return Problem("An unexpected error occurred: " + ex.Message, statusCode: 500);
             }
         }
 
@@ -80,6 +89,24 @@ namespace EmployeeManagementSystem.Controllers
             ArgumentException.ThrowIfNullOrWhiteSpace(denominator?.ToString(), "Denominator cannot be null, empty or whitespace.");
             if (denominator == 0)
                 throw new DivideByZeroException("Denominator cannot be zero.");
+            return numerator.Value / denominator.Value;
+        }
+
+        private static double SafeDivisionWithEvenNumberDenominator(double? numerator, double? denominator)
+        {
+            //ArgumentException.ThrowIfNullOrWhiteSpace(numerator?.ToString(), "Numerator cannot be null, empty or whitespace.");
+            //ArgumentException.ThrowIfNullOrWhiteSpace(denominator?.ToString(), "Denominator cannot be null, empty or whitespace.");
+            if (numerator == null)
+                throw BadRequestException.ArgumentNull(nameof(numerator));
+
+            if (denominator == null)
+                throw BadRequestException.ArgumentNull(nameof(denominator));
+
+            if (denominator.Value == 0)
+                throw new DivideByZeroException("Denominator cannot be zero.");
+
+            if (denominator.Value % 2 != 0)
+                throw new DivideByOddNumberException("Denominator cannot be an odd number.");
             return numerator.Value / denominator.Value;
         }
     }

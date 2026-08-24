@@ -1,3 +1,4 @@
+using EmployeeManagementSystem.Common;
 using EmployeeManagementSystem.Data;
 using EmployeeManagementSystem.Repository;
 using EmployeeManagementSystem.Services;
@@ -11,7 +12,11 @@ namespace EmployeeManagementSystem
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
+                loggingBuilder.AddDebug();
+            });
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("EmployeeDatabaseConnection")
                 ?? throw new InvalidOperationException("Connection string" + "'EmployeeDatabaseConnection' not found.");
@@ -70,10 +75,11 @@ namespace EmployeeManagementSystem
             // Enable HSTS ONLY in production environments
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Error", true);
                 // Strict Transport Security (HSTS) 
                 app.UseHsts();
             }
+
+            app.UseExceptionHandler(GlobalExceptionHandler.HandleException);
             //Redirects HTTP requests to HTTPS
             app.UseHttpsRedirection();
 
