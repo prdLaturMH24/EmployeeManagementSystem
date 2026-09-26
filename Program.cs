@@ -2,7 +2,9 @@ using EmployeeManagementSystem.Common;
 using EmployeeManagementSystem.Data;
 using EmployeeManagementSystem.Repository;
 using EmployeeManagementSystem.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 namespace EmployeeManagementSystem
@@ -28,9 +30,30 @@ namespace EmployeeManagementSystem
                 options.LogTo(Console.WriteLine);
             });
 
+            builder.Services.AddMemoryCache();
+            builder.Services.AddSingleton<SecurityTokenService>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<EmployeeService>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<UserService>();
             builder.Services.AddControllers();
+
+            var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettingsSection["Issuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettingsSection["SuperSecretKey"] ?? throw new ArgumentNullException("SuperSecretKey configuration is missing."))),
+                        ClockSkew = TimeSpan.Zero // Optional: Set clock skew to zero for immediate expiration
+                    };
+                });
+
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             builder.Services.AddSwaggerGen(option =>
@@ -45,6 +68,15 @@ namespace EmployeeManagementSystem
                         Name = "Your Name",
                         Email = "your.email@example.com"
                     }
+                });
+                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please enter a valid JWT bearer token",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "Bearer"
                 });
             });
             builder.Services.AddCors(options =>

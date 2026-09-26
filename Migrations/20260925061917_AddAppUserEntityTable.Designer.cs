@@ -4,6 +4,7 @@ using EmployeeManagementSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EmployeeManagementSystem.Migrations
 {
     [DbContext(typeof(EmployeeDbContext))]
-    partial class EmployeeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260925061917_AddAppUserEntityTable")]
+    partial class AddAppUserEntityTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,10 +32,6 @@ namespace EmployeeManagementSystem.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
@@ -118,42 +117,6 @@ namespace EmployeeManagementSystem.Migrations
                     b.ToTable("EmployeeDetail", "Employee");
                 });
 
-            modelBuilder.Entity("EmployeeManagementSystem.Models.Role", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Role", "Employee");
-                });
-
-            modelBuilder.Entity("EmployeeManagementSystem.Models.UserRole", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("UserRole", "Employee");
-                });
-
             modelBuilder.Entity("EmployeeManagementSystem.Models.EmployeeDetail", b =>
                 {
                     b.HasOne("EmployeeManagementSystem.Models.Employee", "Employee")
@@ -165,38 +128,9 @@ namespace EmployeeManagementSystem.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("EmployeeManagementSystem.Models.UserRole", b =>
-                {
-                    b.HasOne("EmployeeManagementSystem.Models.Role", "Role")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EmployeeManagementSystem.Models.AppUser", "AppUser")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AppUser");
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("EmployeeManagementSystem.Models.AppUser", b =>
-                {
-                    b.Navigation("UserRoles");
-                });
-
             modelBuilder.Entity("EmployeeManagementSystem.Models.Employee", b =>
                 {
                     b.Navigation("EmployeeDetail");
-                });
-
-            modelBuilder.Entity("EmployeeManagementSystem.Models.Role", b =>
-                {
-                    b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
         }
