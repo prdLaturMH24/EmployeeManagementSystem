@@ -1,7 +1,11 @@
 using EmployeeManagementSystem.Common;
+using EmployeeManagementSystem.Authorization.Handlers;
+using EmployeeManagementSystem.Authorization.Requirements;
+using EmployeeManagementSystem.Common.Constants;
 using EmployeeManagementSystem.Data;
 using EmployeeManagementSystem.Repository;
 using EmployeeManagementSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -31,12 +35,35 @@ namespace EmployeeManagementSystem
             });
 
             builder.Services.AddMemoryCache();
-            builder.Services.AddSingleton<SecurityTokenService>();
+            builder.Services.AddScoped<SecurityTokenService>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<EmployeeService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IRoleRepository, RoleRepository>();
             builder.Services.AddScoped<UserService>();
             builder.Services.AddControllers();
+
+            // Configure authorization policies
+            builder.Services.AddAuthorizationBuilder()
+                // Simple role-based policies using RequireRole
+                .AddPolicy("AdminOnly", policy => policy.RequireRole(RoleConstants.Admin))
+                .AddPolicy("ManagerOnly", policy => policy.RequireRole(RoleConstants.Manager))
+                .AddPolicy("AssociateOnly", policy => policy.RequireRole(RoleConstants.Associate))
+
+                // Hierarchical policies - Admin or higher
+                .AddPolicy("AdminOrHigher", policy =>
+                    policy.Requirements.Add(new HierarchicalRoleRequirement(RoleConstants.Admin)))
+
+                // Hierarchical policies - Manager or higher (includes Admin and Manager)
+                .AddPolicy("ManagerOrHigher", policy =>
+                    policy.Requirements.Add(new HierarchicalRoleRequirement(RoleConstants.Manager)))
+
+                // Hierarchical policies - Associate or higher (includes all roles)
+                .AddPolicy("AssociateOrHigher", policy =>
+                    policy.Requirements.Add(new HierarchicalRoleRequirement(RoleConstants.Associate)));
+
+            // Register the hierarchical role authorization handler
+            builder.Services.AddScoped<IAuthorizationHandler, HierarchicalRoleAuthorizationHandler>();
 
             var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -69,14 +96,18 @@ namespace EmployeeManagementSystem
                         Email = "your.email@example.com"
                     }
                 });
-                option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                option.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
-                    Description = "Please enter a valid JWT bearer token",
+                    Description = "Please enter word Bearer followed by a space and a valid JWT bearer token in the value field.",
                     Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
+                    Type = SecuritySchemeType.ApiKey,
                     BearerFormat = "JWT",
-                    Scheme = "Bearer"
+                    Scheme = JwtBearerDefaults.AuthenticationScheme
+                });
+                option.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, document)] = []
                 });
             });
             builder.Services.AddCors(options =>

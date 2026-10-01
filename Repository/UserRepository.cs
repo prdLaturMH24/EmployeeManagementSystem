@@ -14,12 +14,18 @@ namespace EmployeeManagementSystem.Repository
 
         public async Task<AppUser?> GetUserByIdAsync(int id)
         {
-            return await _context.AppUsers.FindAsync(id);
+            return await _context.AppUsers
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<AppUser?> GetUserByUsernameOrEmailAsync(string username)
         {
-            return await _context.AppUsers.FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
+            return await _context.AppUsers
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
         }
 
         public async Task<bool> UserExistsAsync(string userName, string email)
@@ -29,7 +35,10 @@ namespace EmployeeManagementSystem.Repository
 
         public async Task<List<AppUser>> ListUsersAsync()
         {
-            return await _context.AppUsers.ToListAsync();
+            return await _context.AppUsers
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .ToListAsync();
         }
 
         public async Task<AppUser?> AddUserAsync(AppUser appUser)

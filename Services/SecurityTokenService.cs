@@ -1,4 +1,5 @@
 ﻿using EmployeeManagementSystem.Models;
+using EmployeeManagementSystem.Repository;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 
@@ -9,13 +10,15 @@ namespace EmployeeManagementSystem.Services
         private readonly SymmetricSecurityKey _key;
         private readonly string _issuer;
         private readonly IMemoryCache _cache;
+        private readonly IRoleRepository _roleRepository;
 
-        public SecurityTokenService(IConfiguration config, IMemoryCache cache)
+        public SecurityTokenService(IConfiguration config, IMemoryCache cache, IRoleRepository roleRepository)
         {
             var jwtSettingsSection = config.GetSection("JwtSettings");
             _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSettingsSection["SuperSecretKey"] ?? throw new ArgumentNullException("SuperSecretKey configuration is missing.")));
             _issuer = jwtSettingsSection["Issuer"] ?? throw new ArgumentNullException("Issuer configuration is missing.");
             _cache = cache;
+            _roleRepository = roleRepository;
         }
 
         public async Task<SecurityTokenResponse> GenerateSecurityTokenAsync(AppUser user)
@@ -31,6 +34,14 @@ namespace EmployeeManagementSystem.Services
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, user.Email),
                 new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString())
             };
+
+            // Add role claims for the user
+            var userRoles = await _roleRepository.GetUserRolesAsync(user.Id);
+            foreach (var role in userRoles)
+            {
+                claims.Add(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, role.Name));
+            }
+
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
